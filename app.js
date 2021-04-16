@@ -1,8 +1,8 @@
 const express = require('express')
 const app = express()
+var PORT = 3000;
  
-app.get('/', function (req, res) {
-  res.send('ESTO ES EL BACKEND DE ECOPROTECT!')
-})
+app.get('*', (req, res) =>  res.send('ESTO ES EL BACKEND DE ECOPROTECT! \n'));
  
-app.listen(3000);
+app.listen(PORT , '158.109.74.52');
+console.log("Server on port ", PORT);
