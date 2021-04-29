@@ -1,5 +1,12 @@
 import { Request, Response } from "express";
 import user from "../models/user";
+import bcrypt from "bcrypt";
+
+async function encryptPassword(password: any) {
+    const salt = await bcrypt.genSalt(10);
+    return await bcrypt.hash(password, salt);
+  };
+  
 
 export async function registerUser(req: Request, res: Response):Promise<Response>{
     const {mail, userName, country, city,
@@ -12,7 +19,7 @@ export async function registerUser(req: Request, res: Response):Promise<Response
         country: country,
         city: city,
         postalCode: postalCode,
-        password: password, 
+        password: await encryptPassword(password), 
         publications: publications,
         numberPublications: numberPublications,
         awards: awards, 
@@ -24,7 +31,7 @@ export async function registerUser(req: Request, res: Response):Promise<Response
     return res.json({
         message: 'Usser successfully saved',
         u
-    })
+    })  
 }
 
 export async function getUser(req: Request, res: Response):Promise<Response>{

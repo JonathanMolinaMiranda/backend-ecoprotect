@@ -1,32 +1,42 @@
 import { Request, Response } from "express";
 import publication from "../models/publication";
+import User from "../models/user"
 import path from "path";
 import fs from "fs-extra";
+let jwt = require('jsonwebtoken');
 
-export async function createPublication(req: Request, res: Response):Promise<Response>{
-    const {id, nameUser, ubication, description,
-        comments, mgNumber, commentsNumber, 
+export async function createPublication(req: Request, res: Response){
+    const {ubication, description,
+        comments, mgCount, commentsNum, 
         gradient, type} = req.body;
+    
+    const user_id = req.userId;
+    const l = await User.findById(user_id);
+    console.log(user_id)
 
-    const newPublication = {
-        publicationID: id,
-        userName: nameUser,
-        ubication: ubication,
-        imagePath: req.file.path,
-        description: description,
-        comments: comments, 
-        mgCount: mgNumber,
-        commentsNum: commentsNumber,
-        gradient: gradient, 
-        type: type
+    if (l) {
+        const newPublication = {
+            userName: l.userName,
+            ubication: ubication,
+            imagePath: req.file.path,
+            description: description,
+            comments: [], 
+            mgCount: [],
+            commentsNum: 0,
+            gradient: parseInt(gradient), 
+            gradientAverage: parseInt(gradient), 
+            type: l.type
+        }
+        const p = new publication(newPublication)
+        await p.save();
+
+        return res.json({
+            message: 'Publication successfully saved',
+            gradient: newPublication.gradient
+        })
     }
-    const p = new publication(newPublication)
-    await p.save();
-
-    return res.json({
-        message: 'Publication successfully saved',
-    })
 }
+
 
 export async function getPublications(req: Request, res: Response): Promise<Response>{
     const p = await publication.find();
@@ -34,39 +44,50 @@ export async function getPublications(req: Request, res: Response): Promise<Resp
 }
 
 export async function getPublication(req: Request, res: Response): Promise<Response>{
+
     const id= req.params.id;
     const p = await publication.findById(id);
-    return res.json(p);
+    return res.json(p);         
 }
 
 export async function deletePublication(req: Request, res: Response): Promise<Response>{
     const id= req.params.id;
     const p = await publication.findByIdAndRemove(id);
     if(p){
-        fs.unlink(path.resolve(p.imagePath));
+        if(!fs.unlink(path.resolve(p.imagePath))) { return res.json({message: 'No image'})}
     }
     return res.json({
         message:'Publication with id: ' + id + ' successfully removed.'
     });
 }
 
-export async function doComment(req: Request, res: Response): Promise<Response>{
+export async function doComment(req: Request, res: Response){
     const id= req.params.id;
     const {comment} = req.body;
+
+                      
+    const user_id = req.userId;
+    const l = await User.findById(user_id);
+
+    if (l) { 
+
+        const com = l.userName+": "+comment
+        
+        
+        await publication.findByIdAndUpdate(id, {
+            $push: {
+                comments: com,
+                mgCount: 0
+            },
+            $inc: {
+                commentsNum: 1
+            }
+        });
     
-    await publication.findByIdAndUpdate(id, {
-        $push: {
-            comments: comment
-          },
-          $inc: {
-            commentsNum: 1
-          }
-    });
-
-    return res.json({
-        message : 'Publication with id: ' + id + ' successfully added comment.'
-    });
-
+        return res.json({
+            message : 'Publication with id: ' + id + ' successfully added comment.'
+        });
+    }
 }
 
 export async function doLike(req: Request, res: Response): Promise<Response>{
@@ -97,15 +118,16 @@ export async function gradient(req: Request, res: Response): Promise<Response>{
           }
     }, {new : true});
 
-    let average = 0;
-    if(updated != null){
-         average = updated.gradient.reduce((a, b) => a + b, 0) / updated.gradient.length;
+   if(updated != null){
+        updated.gradientAverage = updated.gradient.reduce((a, b) => a + b, 0) / updated.gradient.length
+        await updated.save();
     }
-
 
     return res.json({
         message : 'Publication with id: ' + id + ' successfully added gradient.',
-        average: average
+        average: updated?.gradientAverage
     })
 
 }
+
+

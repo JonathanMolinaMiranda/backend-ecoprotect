@@ -9,6 +9,7 @@ const schema= new Schema({
     mgCount: Array,
     commentsNum: Number,
     gradient: Array, 
+    gradientAverage: Number,
     type: Boolean
 });
 
@@ -21,6 +22,7 @@ interface IPublication extends Document{
     mgCount: Array<number>;
     commentsNum: number;
     gradient: Array<number>; 
+    gradientAverage: number,
     type: boolean;
 }
 
