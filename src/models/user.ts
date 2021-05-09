@@ -8,6 +8,7 @@ const schema= new Schema({
     postalCode: String,
     password: String, 
     publications: Array,
+    imgPaths: Array,
     numberPublications: Number,
     awards: Array, 
     type: Boolean
@@ -21,9 +22,9 @@ interface IUser extends Document{
     postalCode: string;
     password: string;  
     publications: Array<string>;
+    imgPaths: Array<string>;
     numberPyblications: number;
     awards: Array<string>; 
     type: boolean;
 }
-
 export default model<IUser>('User', schema)

@@ -29,10 +29,16 @@ export async function createPublication(req: Request, res: Response){
         }
         const p = new publication(newPublication)
         await p.save();
+        l.publications.push(p.id)
+        l.imgPaths.push(p.imagePath)
+        await l.save();
 
         return res.json({
             message: 'Publication successfully saved',
-            gradient: newPublication.gradient
+            gradient: newPublication.gradient,
+            idImage: p.id,
+            image: p.imagePath
+
         })
     }
 }
@@ -131,3 +137,32 @@ export async function gradient(req: Request, res: Response): Promise<Response>{
 }
 
 
+export async function removeLike(req: Request, res: Response): Promise<Response>{
+    const id= req.params.id; 
+    const pos = req.params.pos;
+
+    let com= `mgCount.${pos}`;
+    await publication.findByIdAndUpdate(id, {
+        $inc: 
+            {
+                [com] : -1 
+            }
+            
+        });
+
+    return res.json({
+        msg: 'ok'
+    });
+
+}
+
+export async function search(req: Request, res: Response): Promise<Response>{
+    const ubica = req.params.ubi;
+    const p = await publication.find({ ubication: ubica});
+    if(p){
+        return res.json(p);
+    }
+    else{
+        return res.json({msg: "Not found"})
+    }
+}

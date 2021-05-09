@@ -10,12 +10,12 @@ const router = Router();
 router.route('/register')
     .post(checkUserExists, Usercontroller.registerUser)
 
-router.route('/user/:id')
-    .get(verifyToken, Usercontroller.getUser) 
+router.route('/user')
+    .get(verifyToken, Usercontroller.getUser)
+    .put(verifyToken, Usercontroller.editUser) 
 
 router.route('/login')
     .post(LoginController.login) 
-
     
 router.route('/logout')
     .post(verifyToken, LoginController.logout) 
@@ -31,9 +31,16 @@ router.route('/publications/:id')
 
 router.route('/publications/like/:id/:pos')
     .put(verifyToken, Publicationcontroller.doLike)
+    .delete(verifyToken, Publicationcontroller.removeLike)
 
     
 router.route('/publications/gradient/:id')
     .put(verifyToken, Publicationcontroller.gradient)
+
+router.route('/publications/search/:ubi')
+    .get(verifyToken, Publicationcontroller.search)
+
+router.route('/profile')
+    .get(verifyToken, Usercontroller.getProfile)
 
 export default router; 
