@@ -22,7 +22,7 @@ router.route('/logout')
 
 router.route('/publications')
     .get(verifyToken, Publicationcontroller.getPublications)
-    .post(verifyToken, multer.single('image'),Publicationcontroller.createPublication) //Solo una imagen
+    .post(verifyToken, multer.array('image', 2),Publicationcontroller.createPublication) 
     
 router.route('/publications/:id')
     .get(verifyToken, Publicationcontroller.getPublication)
@@ -42,5 +42,8 @@ router.route('/publications/search/:ubi')
 
 router.route('/profile')
     .get(verifyToken, Usercontroller.getProfile)
+
+router.route('/verify')
+    .post(verifyToken, Usercontroller.verify)
 
 export default router; 

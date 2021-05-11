@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import user from "../models/user";
 import bcrypt from "bcrypt";
-import { createTrue } from "typescript";
+import {comparePassword} from "./login.controller"
 
 async function encryptPassword(password: any) {
     const salt = await bcrypt.genSalt(10);
@@ -43,25 +43,38 @@ export async function getUser(req: Request, res: Response):Promise<Response>{
 
 
 export async function editUser(req: Request, res: Response):Promise<Response>{
-    const {userName, password} = req.body;
+    const {userName, password, actualPassword} = req.body;
     const id= req.userId;
     const updated = ""
+    let p=""
+    const u = await user.findById(id)
+    if(u) {p= u.password}
 
     if(userName){
-        const updated = await user.findByIdAndUpdate(id, {    
-            userName: userName
-        });
-        if (updated){await updated.save();}
+        if(!await user.findOne({"userName" : userName})){
+            const updated = await user.findByIdAndUpdate(id, {    
+                userName: userName
+            });
+            if (updated){
+                await updated.save();}
+        }else{return res.json({msg: "Already exists nameUser", response: 0})}
     }
     if(password){
-        const updated = await user.findByIdAndUpdate(id, {    
-            password: await encryptPassword(password)
-        });
-        if (updated){await updated.save();}
+        console.log(p, actualPassword)
+        if(await comparePassword(actualPassword, p)){
+            const updated = await user.findByIdAndUpdate(id, {    
+                password: await encryptPassword(password)
+            });
+            if (updated){await updated.save();}
+        } else{return res.json({msg: "Problem with password", response: 0})}
+
+
     }
 
     return res.json({
         message : 'User with id: ' + id + ' successfully updated.',
+        response: 1
+
     })
 
 }
@@ -73,6 +86,7 @@ export async function getProfile(req: Request, res: Response):Promise<Response>{
     if(u){
         return res.json({
             username: u.userName,
+            type: u.type,
             awards : u.awards,
             publications : u.publications,
             images : u.imgPaths
@@ -80,6 +94,18 @@ export async function getProfile(req: Request, res: Response):Promise<Response>{
         });
     }
     return res.json({msg : "No user found"});
+
+}
+
+export async function verify(req: Request, res: Response):Promise<Response>{
+    const id= req.userId;
+
+
+    await user.findByIdAndUpdate(id, {
+        type: true
+    });
+
+    return res.json({msg : "User verificated"});
 
 }
     

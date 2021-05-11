@@ -10,6 +10,7 @@ const schema= new Schema({
     publications: Array,
     imgPaths: Array,
     numberPublications: Number,
+    numberComments: Number,
     awards: Array, 
     type: Boolean
 });
@@ -23,7 +24,8 @@ interface IUser extends Document{
     password: string;  
     publications: Array<string>;
     imgPaths: Array<string>;
-    numberPyblications: number;
+    numberPublications: number;
+    numberComments: number;
     awards: Array<string>; 
     type: boolean;
 }

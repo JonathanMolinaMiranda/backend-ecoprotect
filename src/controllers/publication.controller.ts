@@ -3,6 +3,7 @@ import publication from "../models/publication";
 import User from "../models/user"
 import path from "path";
 import fs from "fs-extra";
+import { forEachChild, isConstructorTypeNode } from "typescript";
 let jwt = require('jsonwebtoken');
 
 export async function createPublication(req: Request, res: Response){
@@ -12,13 +13,17 @@ export async function createPublication(req: Request, res: Response){
     
     const user_id = req.userId;
     const l = await User.findById(user_id);
-    console.log(user_id)
+
+    let s= Object.assign(req.files)
+    console.log(s[0].path)
+
 
     if (l) {
         const newPublication = {
             userName: l.userName,
             ubication: ubication,
-            imagePath: req.file.path,
+            imagePath: s[0].path,
+            solutionPath: s[1] ? s[1].path:" "   ,
             description: description,
             comments: [], 
             mgCount: [],
@@ -30,7 +35,28 @@ export async function createPublication(req: Request, res: Response){
         const p = new publication(newPublication)
         await p.save();
         l.publications.push(p.id)
-        l.imgPaths.push(p.imagePath)
+        if(l.numberPublications) l.numberPublications+=1;
+        else l.numberPublications =1
+        switch(l.numberPublications) { 
+            case 1: { 
+               l.awards.push("bronzePublication")
+               break; 
+            } 
+            case 10: { 
+                l.awards.push("silverPublication") 
+               break; 
+            } 
+            case 20: { 
+                l.awards.push("goldPublication")
+               break; 
+            } 
+         } 
+        if(l.type){
+            //l.imgPaths.push(p.imagePath, p.solutionPath)
+            l.imgPaths.push(p.imagePath,p.solutionPath)
+            
+        }
+        else l.imgPaths.push(p.imagePath)
         await l.save();
 
         return res.json({
@@ -58,10 +84,31 @@ export async function getPublication(req: Request, res: Response): Promise<Respo
 
 export async function deletePublication(req: Request, res: Response): Promise<Response>{
     const id= req.params.id;
+    const user_id = req.userId;
+    const l = await User.findById(user_id);
     const p = await publication.findByIdAndRemove(id);
-    if(p){
-        if(!fs.unlink(path.resolve(p.imagePath))) { return res.json({message: 'No image'})}
+    if(l){
+        if(p){ 
+            if(!fs.unlink(path.resolve(p.imagePath))) { return res.json({message: 'No image'})}
+        }
+
+        const index =  l.publications.indexOf(id);
+
+        if(index > -1){
+            l.publications.splice(index, 1);
+
+        }else{
+            return res.json({message: 'No publication found by id '+ id});
+        }
+
+        if(l.type == true){
+            l.imgPaths.splice(index, 2);    
+        }else{
+            l.imgPaths.splice(index, 1);
+        }
+        l.save();    
     }
+
     return res.json({
         message:'Publication with id: ' + id + ' successfully removed.'
     });
@@ -89,6 +136,25 @@ export async function doComment(req: Request, res: Response){
                 commentsNum: 1
             }
         });
+
+        if(l.numberComments) l.numberComments+=1;
+        else l.numberComments =1
+
+        switch(l.numberComments) { 
+            case 1: { 
+               l.awards.push("bronzeComment")
+               break; 
+            } 
+            case 10: { 
+                l.awards.push("silverComment") 
+               break; 
+            } 
+            case 20: { 
+                l.awards.push("goldComment")
+               break; 
+            } 
+         } 
+         l.save()
     
         return res.json({
             message : 'Publication with id: ' + id + ' successfully added comment.'
