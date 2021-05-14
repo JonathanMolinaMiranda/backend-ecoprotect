@@ -24,7 +24,7 @@ export async function registerUser(req: Request, res: Response):Promise<Response
         publications: publications,
         numberPublications: numberPublications,
         awards: awards, 
-        type: type
+        type: false
     }
     const u = new user(newUser);
     await u.save();
