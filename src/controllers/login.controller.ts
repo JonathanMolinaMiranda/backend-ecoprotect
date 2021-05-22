@@ -35,7 +35,7 @@ export async function login(req: Request, res: Response):Promise<Response>{
                 });
             }else{
                 return res.status(401).json({
-                    message: "Invalid Password"
+                    message: "Invalid Password" 
                 })
             }
     }

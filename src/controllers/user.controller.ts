@@ -21,7 +21,6 @@ export async function registerUser(req: Request, res: Response):Promise<Response
         city: city,
         postalCode: postalCode,
         password: await encryptPassword(password), 
-        publications: publications,
         numberPublications: numberPublications,
         awards: awards, 
         type: false
@@ -102,7 +101,9 @@ export async function verify(req: Request, res: Response):Promise<Response>{
 
 
     await user.findByIdAndUpdate(id, {
-        type: true
+        type: true,
+        publications: [],
+        imgPaths: []
     });
 
     return res.json({msg : "User verificated"});

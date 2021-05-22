@@ -46,4 +46,7 @@ router.route('/profile')
 router.route('/verify')
     .post(verifyToken, Usercontroller.verify)
 
+router.route('/publications/comment/:id/:pos')
+    .delete(verifyToken, Publicationcontroller.deleteComment)
+
 export default router; 
